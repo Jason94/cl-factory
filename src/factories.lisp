@@ -29,7 +29,7 @@
 
 (defun factories-keys ()
   (loop for k being the hash-keys in *factories*
-       collecting k))
+        collecting k))
 
 (defun clear-factories ()
   (setf *factories* (make-hash-table :test #'equal)))
@@ -37,8 +37,18 @@
 (defun get-factory (class-symbol)
   (gethash class-symbol *factories*))
 
+(defun print-factories ()
+  (format t "~&===============================~%")
+  (loop for key in (factories-keys)
+        do (format t "~a: ~a~%" key (get-factory key))))
+
+(defun func-wrap-args (args)
+  (mapcar (lambda (x) (lambda () x))
+          args))
+
 (defmacro define-factory (class-symbol &body rest)
-  `(setf (gethash ,class-symbol *factories*) (list ,@rest)))
+  `(let ((func-wrapped-args (func-wrap-args ,rest)))
+    setf (gethash ,class-symbol *factories*) (list ,@rest)))
 
 (defmacro build (class-symbol &rest args)
   (let* ((norm-class-symbol (ensure-symbol class-symbol))
