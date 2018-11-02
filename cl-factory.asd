@@ -12,7 +12,7 @@
   :pathname "src/"
   :components
   ((:file "package")
-   (:file "factories" :depends-on ("test-suite"))))
+   (:file "factories" :depends-on ("package"))))
 
 (defsystem "cl-factory/test"
   :depends-on ("fiveam" "cl-factory")
