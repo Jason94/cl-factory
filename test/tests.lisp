@@ -9,7 +9,7 @@
 
 ;;;; Test basic CLOS factory definitions
 
-(def-suite class-factory-suite :description "Test the factories for CLOS classes")
+(def-suite class-factory-suite :description "Test basic functionality of factories for CLOS classes")
 
 (in-suite class-factory-suite)
 
@@ -79,7 +79,9 @@
     (is (equal "custom-foo"
                (foo instance)))))
 
-(cl-factory::print-factories)
+(def-suite class-factory-edge-suite :description "Test edge cases for the factories for CLOS classes")
+
+(in-suite class-factory-edge-suite)
 
 (defvar *count* 0)
 
@@ -89,13 +91,17 @@
   (cl-factory::clear-factories)
   (define-factory 'with-default-slots
     :foo *count*)
+  (format t "~&---------------<>--------------~%")
+  (cl-factory::print-factories)
+  (format t "===============^^==============~%~%")
   (incf *count*)
   (is (equal *count*
              (foo (build 'with-default-slots))))
   (incf *count*)
   (is (equal *count*
+
              (foo (build 'with-default-slots)))))
 
-(run! 'slots-eval-at-build)
+;;(run! 'slots-eval-at-build)
 
-;;(run! 'class-factory-suite)
+(run! 'class-factory-suite)

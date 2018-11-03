@@ -47,8 +47,7 @@
           args))
 
 (defmacro define-factory (class-symbol &body rest)
-  `(let ((func-wrapped-args (func-wrap-args ,rest)))
-    setf (gethash ,class-symbol *factories*) (list ,@rest)))
+  `(setf (gethash ,class-symbol *factories*) ',rest))
 
 (defmacro build (class-symbol &rest args)
   (let* ((norm-class-symbol (ensure-symbol class-symbol))
