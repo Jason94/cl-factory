@@ -1,6 +1,6 @@
 (in-package :cl-factory-test)
 
-(declaim (optimize (speed 0) (safety 3) (debug 3)))
+(declaim (optimize (speed 0) (safety 0) (debug 3)))
 
 (defvar +default-foo+ "default-foo")
 (defvar +default-bar+ "default-bar")
