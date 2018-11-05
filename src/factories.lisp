@@ -1,26 +1,12 @@
 (in-package :cl-factory)
 
-(declaim (optimize (speed 0) (safety 0) (debug 3)))
-
 ;;; Utils
 (defun ensure-symbol (maybe-symbol)
   "Convert the form you get when you quote a symbol in a macro-arg
-   to a symbol"
+   to a symbol."
   (if (not (symbolp maybe-symbol))
       (second maybe-symbol)
       maybe-symbol))
-
-(defun get-plist-keys (plist)
-  (let ((keys '()))
-    (loop for i from 0 to (1- (length plist)) by 2
-          do (setf keys (adjoin (nth i plist)
-                                keys)))
-    (reverse keys)))
-
-(defun weave (seq-a seq-b)
-  (loop for a in seq-a
-        for b in seq-b
-     appending (list a b)))
 
 ;;; Args
 (defclass slot-arg ()
@@ -32,14 +18,11 @@
     :initarg :form
     :initform (error "Must supply a form")
     :reader form
-    :documentation "The form to evaluate and supply to the constructory")))
+    :documentation "The form to evaluate and supply to the constructory.")))
 
 (defmethod print-object ((slot-arg slot-arg) stream)
   (print-unreadable-object (slot-arg stream :type t :identity t)
     (format stream "Key: ~a | Form: ~a" (key slot-arg) (form slot-arg))))
-
-(defun eval-form (slot-arg)
-  (eval (form slot-arg)))
 
 (defun plist-to-slot-args (plist)
   "Convert a plist of the form (:key form) to a list of slot-arg."
@@ -61,24 +44,26 @@
 (defvar *factories* (make-hash-table :test #'equal))
 
 (defun factories-keys ()
+  "Get a list of all of the defined factories."
   (loop for k being the hash-keys in *factories*
         collecting k))
 
 (defun clear-factories ()
+  "Clear all of the factories."
   (setf *factories* (make-hash-table :test #'equal)))
 
 (defun get-factory (class-symbol)
+  "Get the factory defined for a class-symbol."
   (gethash class-symbol *factories*))
 
-(defun print-factories ()
-  (format t "~&===============================~%")
-  (loop for key in (factories-keys)
-        do (format t "~a: ~a~%" key (get-factory key))))
-
 (defmacro define-factory (class-symbol &body rest)
+  "Define a new factory.
+   TODO: Improve this doc"
   `(setf (gethash ,class-symbol *factories*) (plist-to-slot-args ',rest)))
 
 (defmacro build (class-symbol &rest args)
+  "Build an instance of a factory.
+   TODO: Improve this doc."
   (let* ((norm-class-symbol (ensure-symbol class-symbol))
          (default-slot-args (get-factory norm-class-symbol))
          (all-slot-args (append (plist-to-slot-args args) default-slot-args))
