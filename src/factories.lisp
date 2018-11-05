@@ -28,39 +28,33 @@
     :initarg :key
     :initform (error "Must supply a key")
     :reader key)
-   (form-lambda
-    :initarg :form-lambda
-    :initform (error "Must supply a form-eval")
-    :reader form-lambda
-    :documentation "A function with no args that evaluates to the
-    form entered by the define-factory.")))
+   (form
+    :initarg :form
+    :initform (error "Must supply a form")
+    :reader form
+    :documentation "The form to evaluate and supply to the constructory")))
 
 (defmethod print-object ((slot-arg slot-arg) stream)
   (print-unreadable-object (slot-arg stream :type t :identity t)
-    (format stream "Key: ~a" (key slot-arg))))
+    (format stream "Key: ~a | Form: ~a" (key slot-arg) (form slot-arg))))
 
 (defun eval-form (slot-arg)
-  (funcall (form-lambda slot-arg)))
+  (eval (form slot-arg)))
 
 (defun plist-to-slot-args (plist)
   "Convert a plist of the form (:key form) to a list of slot-arg."
   (loop for i from 0 to (1- (length plist)) by 2
         for key = (nth i plist)
         for form = (nth (1+ i) plist)
-        for form-lambda = (eval `(lambda ()
-                                   ,form))
-     collecting (make-instance 'slot-arg :key key :form-lambda form-lambda)))
+        collecting (make-instance 'slot-arg :key key :form form)))
 
-(defun slot-args-to-plist (slot-args &optional (eval? t))
-  "Convert a list of slot-args to a plist"
-  (loop for slot-arg in slot-args
-        for form = (if eval?
-                       (funcall (form-lambda slot-arg))
-                       (form-lambda slot-arg))
-        appending (list (key slot-arg)
-                        form)))
-
-(eval-form (first (plist-to-slot-args '(:a (+ 1 2)))))
+(defun slot-args-to-make-instance (class-symbol slot-args)
+  (let* ((args-plist (loop for slot-arg in slot-args
+                           for key = (key slot-arg)
+                           for form = (form slot-arg)
+                           appending `(,key (eval ,form))))
+         (form `(make-instance ',class-symbol ,@args-plist)))
+    (eval form)))
 
 ;;; Factories
 
@@ -90,4 +84,4 @@
          (all-slot-args (append (plist-to-slot-args args) default-slot-args))
          (merged-slot-args
           (remove-duplicates all-slot-args :key #'key :from-end t)))
-    `(make-instance ,class-symbol ,@(slot-args-to-plist merged-slot-args))))
+    `(slot-args-to-make-instance ,class-symbol (list ,@merged-slot-args))))

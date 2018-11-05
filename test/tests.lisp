@@ -85,23 +85,22 @@
 
 (defvar *count* 0)
 
+(cl-factory::clear-factories)
+(define-factory 'with-default-slots
+  :foo (+ 1 2))
+
 (test slots-eval-at-build
   "A default slot evaluates at build, not at factory-definition."
   (setf *count* 0)
   (cl-factory::clear-factories)
   (define-factory 'with-default-slots
     :foo *count*)
-  (format t "~&---------------<>--------------~%")
-  (cl-factory::print-factories)
-  (format t "===============^^==============~%~%")
   (incf *count*)
   (is (equal *count*
              (foo (build 'with-default-slots))))
   (incf *count*)
   (is (equal *count*
-
              (foo (build 'with-default-slots)))))
 
-;;(run! 'slots-eval-at-build)
-
 (run! 'class-factory-suite)
+(run! 'slots-eval-at-build)
