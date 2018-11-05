@@ -13,10 +13,12 @@
 
 (in-suite class-factory-suite)
 
+(defclass empty-class ()
+  ())
+
 (test empty-class
   "An empty factory on a class with no slots makes an instance of that class"
-  (defclass empty-class ()
-    ())
+  (cl-factory::clear-factories)
   (define-factory 'empty-class)
   (is (eql
        'empty-class
@@ -32,11 +34,11 @@
     :initform +default-bar+
     :reader bar)))
 
-(define-factory 'with-default-slots)
-
 (test default-slots
   "An empty factory on a class with default slots, built with no options, has
    the default slot values"
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots)
   (let ((instance (build 'with-default-slots)))
     (is (equal +default-foo+
                (foo instance)))
@@ -46,20 +48,20 @@
 (test slot-args
   "An empty factory on a class with default slots, built with options,
    takes those options as values for slots."
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots)
   (let ((instance (build 'with-default-slots :bar +factory-bar+)))
     (is (equal +default-foo+
                (foo instance)))
     (is (equal +factory-bar+
                (bar instance)))))
 
-(cl-factory::clear-factories)
-
-(define-factory 'with-default-slots
-  :foo +factory-foo+)
-
 (test non-empty-factory
   "A factory that specifies slots on a class with slots uses those slots
    by default"
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    :foo +factory-foo+)
   (let ((instance (build 'with-default-slots)))
     (is (equal +factory-foo+
                (foo instance)))
@@ -69,12 +71,18 @@
 (test non-empty-factory-and-unspecified
   "A factory that specifies slots on a class can build values for other
    slots"
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    :foo +factory-foo+)
   (let ((instance (build 'with-default-slots :bar +factory-bar+)))
     (is (equal +factory-bar+
                (bar instance)))))
 
 (test build-vals-override-defaults
   "Slot values specified in build should override those from the factory"
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    :foo +factory-foo+)
   (let ((instance (build 'with-default-slots :foo "custom-foo")))
     (is (equal "custom-foo"
                (foo instance)))))
@@ -85,12 +93,8 @@
 
 (defvar *count* 0)
 
-(cl-factory::clear-factories)
-(define-factory 'with-default-slots
-  :foo *count*)
-
 (test slots-eval-at-build
-  "A default slot evaluates at build, not at factory-definition."
+  "A default slot evaluates at build, not at factory-definition"
   (cl-factory::clear-factories)
   (define-factory 'with-default-slots
     :foo *count*)
@@ -102,5 +106,15 @@
   (is (equal 2
              (foo (build 'with-default-slots)))))
 
+
+(test factory-alias
+  "A factory can take an alias"
+  (cl-factory::clear-factories)
+  (define-factory ('aliased-factory :class 'with-default-slots)
+    :foo +factory-foo+)
+  (is (equal +factory-foo+
+             (foo (build 'aliased-factory)))))
+
 (run! 'class-factory-suite)
-(run! 'slots-eval-at-build)
+(run! 'class-factory-edge-suite)
+;;(run! 'factory-alias)
