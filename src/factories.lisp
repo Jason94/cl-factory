@@ -80,9 +80,8 @@
   (let* ((args-plist (loop for slot-arg in slot-args
                            for key = (key slot-arg)
                            for form = (form slot-arg)
-                           appending `(,key (eval ,form))))
-         (form `(make-instance ',class-symbol ,@args-plist)))
-    (eval form)))
+                           appending (list key (eval form)))))
+    (apply #'make-instance class-symbol args-plist)))
 
 ;;; Factories
 
