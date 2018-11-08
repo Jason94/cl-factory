@@ -19,4 +19,5 @@
   :pathname "test/"
   :components
   ((:file "test-suite")
-   (:file "tests" :depends-on ("test-suite"))))
+   (:file "tests" :depends-on ("test-suite"))
+   (:file "tests-plist" :depends-on ("test-suite"))))

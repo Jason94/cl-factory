@@ -76,11 +76,14 @@
         for form = (nth (1+ i) plist)
         collecting (make-instance 'slot-arg :key key :form form)))
 
+(defun slot-args-to-plist (slot-args)
+  "Convert a list of slot-args to a plist of their keys and evaluated forms."
+  (mapcan (lambda (slot-arg)
+            (list (key slot-arg) (eval (form slot-arg))))
+          slot-args))
+
 (defun slot-args-to-make-instance (class-symbol slot-args)
-  (let* ((args-plist (loop for slot-arg in slot-args
-                           for key = (key slot-arg)
-                           for form = (form slot-arg)
-                           appending (list key (eval form)))))
+  (let ((args-plist (slot-args-to-plist slot-args)))
     (apply #'make-instance class-symbol args-plist)))
 
 ;;; Factories
@@ -130,10 +133,14 @@
 (defun build (factory-name &rest args)
   "Build an instance of a factory.
    TODO: Improve this doc."
-  (let* ((factory (get-factory (ensure-symbol factory-name)))
-         (all-slot-args (append
-                         (plist-to-slot-args args)
-                         (slot-args factory)))
-         (merged-slot-args
-          (remove-duplicates all-slot-args :key #'key :from-end t)))
-    (slot-args-to-make-instance (class-symbol factory) merged-slot-args)))
+  (let ((factory (get-factory (ensure-symbol factory-name))))
+    (if (find-class (class-symbol factory) nil)
+        (let* ((all-slot-args (append
+                               (plist-to-slot-args args)
+                               (slot-args factory)))
+               (merged-slot-args
+                (remove-duplicates all-slot-args :key #'key :from-end t)))
+          (slot-args-to-make-instance (class-symbol factory) merged-slot-args))
+        (append
+         args
+         (slot-args-to-plist (slot-args factory))))))
