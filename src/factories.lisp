@@ -1,5 +1,7 @@
 (in-package :cl-factory)
 
+(declaim (optimize (speed 0) (safety 0) (debug 3)))
+
 ;;; Utils
 (defun is-quoted (maybe-quoted)
   "Check if a form is a quote form (quote XXX)"
@@ -30,6 +32,35 @@
     ((symbolp maybe-symbol) maybe-symbol)
     ((is-quoted maybe-symbol) (second maybe-symbol))
     (t nil)))
+
+(defun take-n (list n)
+  "Return a list taking every nth element of list."
+  (loop for i from 0 to (1- (length list)) by n
+        collecting (nth i list)))
+
+(defun property-position (plist property)
+  "Return the nth place of property in plist, or nil."
+  (let ((i-property (position property (take-n plist 2) :test #'equal)))
+    (when i-property
+      (* 2 i-property))))
+
+(defun reverse-plist (plist)
+  "Reverse the order of the key/value pairs in a plist."
+  (loop for i from (1- (length plist)) downto 0 by 2
+        appending (subseq plist (1- i) (1+ i))))
+
+(defun clean-plist (plist)
+  "Remove duplicate key-entries from a plist"
+  (labels ((recur (orig-plist new-plist)
+             (if (not orig-plist)
+                 new-plist
+                 (if (not (property-position new-plist (first orig-plist)))
+                     (recur (rest (rest orig-plist))
+                            (append (subseq orig-plist 0 2)
+                                    new-plist))
+                     (recur (rest (rest orig-plist))
+                            new-plist)))))
+    (reverse-plist (recur plist '()))))
 
 ;;; Factory
 (defclass factory ()
@@ -133,14 +164,13 @@
 (defun build (factory-name &rest args)
   "Build an instance of a factory.
    TODO: Improve this doc."
-  (let ((factory (get-factory (ensure-symbol factory-name))))
+  (let* ((factory (get-factory (ensure-symbol factory-name)))
+         (args-plist (clean-plist
+                      (append
+                       args
+                       (slot-args-to-plist (slot-args factory))))))
     (if (find-class (class-symbol factory) nil)
-        (let* ((all-slot-args (append
-                               (plist-to-slot-args args)
-                               (slot-args factory)))
-               (merged-slot-args
-                (remove-duplicates all-slot-args :key #'key :from-end t)))
-          (slot-args-to-make-instance (class-symbol factory) merged-slot-args))
-        (append
-         args
-         (slot-args-to-plist (slot-args factory))))))
+        (apply #'make-instance
+               (class-symbol factory)
+               args-plist)
+        args-plist)))
