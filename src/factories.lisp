@@ -34,7 +34,7 @@
     :initarg :form
     :initform (error "Must supply a form")
     :reader form
-    :documentation "The form to evaluate and supply to the constructory.")))
+    :documentation "The form to evaluate and supply to the constructor.")))
 
 (defmethod print-object ((slot-arg slot-arg) stream)
   (print-unreadable-object (slot-arg stream :type t :identity t)
@@ -109,8 +109,8 @@
                       (append
                        args
                        (slot-args-to-plist (slot-args factory))))))
-    (if (find-class (class-symbol factory) nil)
-        (apply #'make-instance
-               (class-symbol factory)
-               args-plist)
-        args-plist)))
+    (cond
+      ((find-class (class-symbol factory) nil) (apply #'make-instance
+                                                      (class-symbol factory)
+                                                      args-plist))
+       (t args-plist))))

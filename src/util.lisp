@@ -41,6 +41,10 @@
     (when i-property
       (* 2 i-property))))
 
+(defun drop-property (plist)
+  "Drop the first property (key/value pair) from a plist."
+  (rest (rest plist)))
+
 (defun reverse-plist (plist)
   "Reverse the order of the key/value pairs in a plist."
   (loop for i from (1- (length plist)) downto 0 by 2
@@ -52,9 +56,9 @@
              (if (not orig-plist)
                  new-plist
                  (if (not (property-position new-plist (first orig-plist)))
-                     (recur (rest (rest orig-plist))
+                     (recur (drop-property orig-plist)
                             (append (subseq orig-plist 0 2)
                                     new-plist))
-                     (recur (rest (rest orig-plist))
+                     (recur (drop-property orig-plist)
                             new-plist)))))
     (reverse-plist (recur plist '()))))

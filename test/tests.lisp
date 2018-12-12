@@ -9,7 +9,9 @@
 
 ;;;; Test basic CLOS factory definitions
 
-(def-suite class-factory-suite :description "Test basic functionality of factories for CLOS classes")
+(def-suite class-factory-suite
+    :description "Test basic functionality of factories for CLOS classes"
+    :in all-factory-tests)
 
 (in-suite class-factory-suite)
 
@@ -87,7 +89,9 @@
     (is (equal "custom-foo"
                (foo instance)))))
 
-(def-suite class-factory-edge-suite :description "Test edge cases for the factories for CLOS classes")
+(def-suite class-factory-edge-suite
+    :description "Test edge cases for the factories for CLOS classes"
+    :in all-factory-tests)
 
 (in-suite class-factory-edge-suite)
 

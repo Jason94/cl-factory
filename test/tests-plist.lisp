@@ -5,7 +5,9 @@
 (defvar +factory-foo+ "factoried-foo")
 (defvar +factory-bar+ "factoried-bar")
 
-(def-suite plist-factory-suite :description "Test basic functionality of factories for plists")
+(def-suite plist-factory-suite
+    :description "Test basic functionality of factories for plists"
+    :in all-factory-tests)
 
 (in-suite plist-factory-suite)
 
