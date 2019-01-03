@@ -1,7 +1,5 @@
 (in-package :cl-factory-test)
 
-(declaim (optimize (speed 0) (safety 0) (debug 3)))
-
 (defvar +default-foo+ "default-foo")
 (defvar +default-bar+ "default-bar")
 (defvar +factory-foo+ "factoried-foo")
@@ -118,7 +116,3 @@
     :foo +factory-foo+)
   (is (equal +factory-foo+
              (foo (build 'aliased-factory)))))
-
-(run! 'class-factory-suite)
-(run! 'class-factory-edge-suite)
-;;(run! 'factory-alias)

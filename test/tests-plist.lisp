@@ -67,5 +67,3 @@
   (incf *count-plist*)
   (is (equal 2
              (getf (build 'dynamic-plist) :foo))))
-
-(run! 'plist-factory-suite)
