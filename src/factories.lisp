@@ -47,7 +47,7 @@
         for form = (nth (1+ i) plist)
         collecting (make-instance 'slot-arg :key key :form form)))
 
-(defun slot-args-to-plist (slot-args)
+(defun slot-args-to-evaluated-plist (slot-args)
   "Convert a list of slot-args to a plist of their keys and evaluated forms."
   (mapcan (lambda (slot-arg)
             (list (key slot-arg) (eval (form slot-arg))))
@@ -89,7 +89,7 @@
 
 (defmacro define-factory (args &body rest)
   "Define a new factory.
-   args - class-symbol OR (class-symbol &key alias)
+   args - class-symbol OR (alias &key class)
    TODO: Improve this doc"
   (let* ((args-list (ensure-list args))
          (class-symbol (args-to-class-sym args-list))
@@ -102,13 +102,12 @@
                           :slot-args (plist-to-slot-args ',rest)))))
 
 (defun build (factory-name &rest args)
-  "Build an instance of a factory.
-   TODO: Improve this doc."
+  "Build an instance of a factory."
   (let* ((factory (get-factory (ensure-symbol factory-name)))
          (args-plist (clean-plist
                       (append
                        args
-                       (slot-args-to-plist (slot-args factory))))))
+                       (slot-args-to-evaluated-plist (slot-args factory))))))
     (cond
       ((find-class (class-symbol factory) nil) (apply #'make-instance
                                                       (class-symbol factory)
