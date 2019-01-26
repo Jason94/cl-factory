@@ -79,3 +79,20 @@ Arguments are evaluated at build time, not at factory-definition, so be careful 
 
 (build 'numbers) ;; Returns: '(:zero 1 :one 2)
 ```
+
+## Static arguments
+
+If you need an argument to be evaluated at build time, you can mark an argument *static*, like this:
+
+```
+(defvar *value* 0)
+
+(define-factory 'numbers
+  (:zero :static t) *value*
+  (:one :static t) (1+ *value*)
+  :two (+ *value* 2))
+  
+(setf *value* 1) 
+
+(build 'numbers) ;; Returns: '(:zero 0 :one 1 :two 3)
+```

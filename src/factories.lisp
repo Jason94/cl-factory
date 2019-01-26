@@ -1,7 +1,5 @@
 (in-package :cl-factory)
 
-(declaim (optimize (speed 0) (safety 0) (debug 3)))
-
 ;;; Factory
 (defclass factory ()
   ((class-symbol
@@ -34,28 +32,37 @@
     :initarg :form
     :initform (error "Must supply a form")
     :reader form
-    :documentation "The form to evaluate and supply to the constructor.")))
+    :documentation "The form to evaluate and supply to the constructor.")
+   (is-static
+    :initarg :is-static
+    :initform nil
+    :reader is-static)))
 
 (defmethod print-object ((slot-arg slot-arg) stream)
   (print-unreadable-object (slot-arg stream :type t :identity t)
     (format stream "Key: ~a | Form: ~a" (key slot-arg) (form slot-arg))))
 
-(defun plist-to-slot-args (plist)
-  "Convert a plist of the form (:key form) to a list of slot-arg."
-  (loop for i from 0 to (1- (length plist)) by 2
-        for key = (nth i plist)
-        for form = (nth (1+ i) plist)
-        collecting (make-instance 'slot-arg :key key :form form)))
+(defun factory-body-to-slot-args (body)
+  "Convert a factory-definition body to a list of slot-arg. See define-factory
+   for more documentation on the format."
+  (let ((normalized-body (mapkeys #'ensure-list body)))
+    (loop for i from 0 to (1- (length normalized-body)) by 2
+          for slot-specifier = (nth i normalized-body)
+          for key = (first slot-specifier)
+          for is-static = (getf (rest slot-specifier) :static)
+          for form = (nth (1+ i) normalized-body)
+          for norm-form = (if is-static
+                              (eval form)
+                              form)
+          collecting (make-instance 'slot-arg :key key :form norm-form :is-static is-static))))
 
 (defun slot-args-to-evaluated-plist (slot-args)
   "Convert a list of slot-args to a plist of their keys and evaluated forms."
   (mapcan (lambda (slot-arg)
-            (list (key slot-arg) (eval (form slot-arg))))
+            (list (key slot-arg) (if (is-static slot-arg)
+                                     (form slot-arg)
+                                     (eval (form slot-arg)))))
           slot-args))
-
-(defun slot-args-to-make-instance (class-symbol slot-args)
-  (let ((args-plist (slot-args-to-plist slot-args)))
-    (apply #'make-instance class-symbol args-plist)))
 
 ;;; Factories
 
@@ -90,6 +97,8 @@
 (defmacro define-factory (args &body rest)
   "Define a new factory.
    args - class-symbol OR (alias &key class)
+   rest - has the form :arg-name eval-form
+                       (:arg-name ... arg plist) eval-form
    TODO: Improve this doc"
   (let* ((args-list (ensure-list args))
          (class-symbol (args-to-class-sym args-list))
@@ -99,7 +108,7 @@
            (make-instance 'factory
                           :class-symbol ,class-symbol
                           :alias ,alias
-                          :slot-args (plist-to-slot-args ',rest)))))
+                          :slot-args (factory-body-to-slot-args ',rest)))))
 
 (defun build (factory-name &rest args)
   "Build an instance of a factory."

@@ -6,7 +6,7 @@ The current version of cl-factory is 0.1.0. This roadmap outlines our currently 
 
 ### 0.2.0 - Arguments Expansion
 
-- [ ] Static arguments (arguments that are evaluated at factory-definition time, not build time)
+- [X] Static arguments (arguments that are evaluated at factory-definition time, not build time)
 - [ ] Dependent arguments (arguments that reference other arguments)
 - [ ] Transient arguments (arguments which are used for dependent arguments, but aren't injected into the object)
 - [ ] Submit to Quicklisp

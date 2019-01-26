@@ -87,6 +87,28 @@
     (is (equal "custom-foo"
                (foo instance)))))
 
+(test factory-slot-list
+  "Slot specifiers can take the form of lists to allow arguments to be supplied."
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    (:foo) +factory-foo+)
+  (let ((instance (build 'with-default-slots)))
+    (is (equal +factory-foo+
+               (foo instance)))))
+
+(defvar *x* 0)
+
+(test static-args-at-build
+  "Static slots are evaluated at factory-definition, not build time."
+  (cl-factory::clear-factories)
+  (setf *x* 0)
+  (define-factory 'with-default-slots
+    (:foo :static t) *x*)
+  (setf *x* 1)
+  (let ((instance (build 'with-default-slots)))
+    (is (equal 0
+               (foo instance)))))
+
 (def-suite class-factory-edge-suite
     :description "Test edge cases for the factories for CLOS classes"
     :in all-factory-tests)
@@ -107,7 +129,6 @@
   (incf *count*)
   (is (equal 2
              (foo (build 'with-default-slots)))))
-
 
 (test factory-alias
   "A factory can take an alias"

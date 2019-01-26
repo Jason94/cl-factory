@@ -41,6 +41,13 @@
     (when i-property
       (* 2 i-property))))
 
+(defun mapkeys (f plist)
+  "Apply f to the keys of plist."
+  (loop for i from 0 to (- (length plist) 2) by 2
+        for key = (nth i plist)
+        for val = (nth (1+ i) plist)
+        appending (list (funcall f key) val)))
+
 (defun drop-property (plist)
   "Drop the first property (key/value pair) from a plist."
   (rest (rest plist)))
