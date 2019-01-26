@@ -87,6 +87,9 @@
     (is (equal "custom-foo"
                (foo instance)))))
 
+(test static-args-at-build
+      "")
+
 (def-suite class-factory-edge-suite
     :description "Test edge cases for the factories for CLOS classes"
     :in all-factory-tests)
@@ -107,7 +110,6 @@
   (incf *count*)
   (is (equal 2
              (foo (build 'with-default-slots)))))
-
 
 (test factory-alias
   "A factory can take an alias"
