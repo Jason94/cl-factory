@@ -54,10 +54,6 @@
             (list (key slot-arg) (eval (form slot-arg))))
           slot-args))
 
-(defun slot-args-to-make-instance (class-symbol slot-args)
-  (let ((args-plist (slot-args-to-plist slot-args)))
-    (apply #'make-instance class-symbol args-plist)))
-
 ;;; Factories
 
 (defvar *factories* (make-hash-table :test #'equalp)
