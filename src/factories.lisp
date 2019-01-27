@@ -1,7 +1,5 @@
 (in-package :cl-factory)
 
-(declaim (optimize (speed 0) (safety 0) (debug 3)))
-
 ;;; Factory
 (defclass factory ()
   ((class-symbol
@@ -40,12 +38,15 @@
   (print-unreadable-object (slot-arg stream :type t :identity t)
     (format stream "Key: ~a | Form: ~a" (key slot-arg) (form slot-arg))))
 
-(defun plist-to-slot-args (plist)
-  "Convert a plist of the form (:key form) to a list of slot-arg."
-  (loop for i from 0 to (1- (length plist)) by 2
-        for key = (nth i plist)
-        for form = (nth (1+ i) plist)
-        collecting (make-instance 'slot-arg :key key :form form)))
+(defun factory-body-to-slot-args (body)
+  "Convert a factory-definition body to a list of slot-arg. See define-factory
+   for more documentation on the format."
+  (let ((normalized-body (mapkeys #'ensure-list body)))
+    (loop for i from 0 to (1- (length normalized-body)) by 2
+          for slot-specifier = (nth i normalized-body)
+          for key = (first slot-specifier)
+          for form = (nth (1+ i) normalized-body)
+          collecting (make-instance 'slot-arg :key key :form form))))
 
 (defun slot-args-to-evaluated-plist (slot-args)
   "Convert a list of slot-args to a plist of their keys and evaluated forms."
@@ -90,6 +91,8 @@
 (defmacro define-factory (args &body rest)
   "Define a new factory.
    args - class-symbol OR (alias &key class)
+   rest - has the form :arg-name eval-form
+                       (:arg-name ... arg plist) eval-form
    TODO: Improve this doc"
   (let* ((args-list (ensure-list args))
          (class-symbol (args-to-class-sym args-list))
@@ -99,7 +102,7 @@
            (make-instance 'factory
                           :class-symbol ,class-symbol
                           :alias ,alias
-                          :slot-args (plist-to-slot-args ',rest)))))
+                          :slot-args (factory-body-to-slot-args ',rest)))))
 
 (defun build (factory-name &rest args)
   "Build an instance of a factory."

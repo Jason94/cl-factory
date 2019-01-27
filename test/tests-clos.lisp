@@ -87,8 +87,17 @@
     (is (equal "custom-foo"
                (foo instance)))))
 
-(test static-args-at-build
-      "")
+(test factory-slot-list
+  "Slot specifiers can take the form of lists to allow arguments to be supplied."
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    (:foo) +factory-foo+)
+  (let ((instance (build 'with-default-slots)))
+    (is (equal +factory-foo+
+               (foo instance)))))
+
+;;(test static-args-at-build
+;;      "")
 
 (def-suite class-factory-edge-suite
     :description "Test edge cases for the factories for CLOS classes"
