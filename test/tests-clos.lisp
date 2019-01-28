@@ -96,8 +96,17 @@
     (is (equal +factory-foo+
                (foo instance)))))
 
-;;(test static-args-at-build
-;;      "")
+(defvar *x* 0)
+
+(test static-args-at-build
+  "Static slots are evaluated at factory-definition, not build time."
+  (cl-factory::clear-factories)
+  (define-factory 'with-default-slots
+    (:foo :static t) *x*)
+  (setf *x* 1)
+  (let ((instance (build 'with-default-slots)))
+    (is (equal 0
+               (foo instance)))))
 
 (def-suite class-factory-edge-suite
     :description "Test edge cases for the factories for CLOS classes"
