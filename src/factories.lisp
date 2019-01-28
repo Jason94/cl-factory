@@ -45,8 +45,12 @@
     (loop for i from 0 to (1- (length normalized-body)) by 2
           for slot-specifier = (nth i normalized-body)
           for key = (first slot-specifier)
+          for is-static = (getf (rest slot-specifier) :static)
           for form = (nth (1+ i) normalized-body)
-          collecting (make-instance 'slot-arg :key key :form form))))
+          for norm-form = (if is-static
+                              (eval form)
+                              form)
+          collecting (make-instance 'slot-arg :key key :form norm-form))))
 
 (defun slot-args-to-evaluated-plist (slot-args)
   "Convert a list of slot-args to a plist of their keys and evaluated forms."
